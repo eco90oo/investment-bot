@@ -1,0 +1,22 @@
+[Unit]
+Description=Investment Bot - 自動化投資分析系統
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/home/node/.openclaw/workspace/investment-bot
+# 使用 uv 執行 Python（請先安裝依賴）
+ExecStart=/usr/bin/python3 /home/node/.openclaw/workspace/investment-bot/main.py
+Restart=always
+RestartSec=10
+
+# 環境變數
+Environment=PYTHONUNBUFFERED=1
+
+# 日誌配置
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

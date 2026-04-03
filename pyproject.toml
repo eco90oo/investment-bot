@@ -1,0 +1,22 @@
+[project]
+name = "investment-bot"
+version = "0.1.0"
+description = "自動化投資分析系統 - 整合真實數據、專家分析与Telegram推播"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "yfinance>=0.2.36",
+    "pandas>=2.1.0",
+    "pandas_ta>=0.3.14b",
+    "requests>=2.31.0",
+    "python-dotenv>=1.0.0",
+    "schedule>=1.2.0",
+    "python-telegram-bot>=20.7",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+dev-dependencies = []

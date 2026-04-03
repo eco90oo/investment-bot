@@ -1,0 +1,37 @@
+# Python 快取
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# 環境變數（敏感資訊）
+.env
+.env.local
+.env.*.local
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 系統檔案
+.DS_Store
+Thumbs.db
+
+# Log 檔案
+*.log
+logs/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# 編譯檔案
+*.egg-info/
+dist/
+build/
