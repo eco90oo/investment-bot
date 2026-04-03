@@ -103,14 +103,14 @@ class InvestmentBot:
             with open(f"data_dump_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json", "w", encoding="utf-8") as f:
                 json.dump(stock_data, f, indent=2, ensure_ascii=False)
             
-            # 2. OpenClaw 分析 + Telegram 推播
-            logger.info("🤖 步驟2: 進行專家分析並推播...")
+            # 2. 分析並推播
+            logger.info("🤖 步驟2: 進行分析並推播...")
             success = self.analyst.analyze_and_broadcast(stock_data)
             
             if success:
                 logger.info("✅ 分析與推播完成")
             else:
-                logger.warning("⚠️ 推播失敗，請檢查 Telegram 配置")
+                logger.warning("⚠️ 推播失敗，但分析已完成")
             
             return success
             
@@ -129,7 +129,7 @@ class InvestmentBot:
         
         設定:
         - 盤前分析: 19:00（台北）= 03:00 ET
-        - 盤後分析: 21:00（台北）= 05:00 ET
+        - 盤後分析: 21:30（台北）= 05:30 ET
         - 盤中更新: 每4小時
         """
         # 盤前分析（台北時間 19:00 = 美東 03:00，盤前）

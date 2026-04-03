@@ -1,0 +1,25 @@
+{
+  "timestamp": "2026-04-03T13:55:04.442916",
+  "watchlist": [
+    "TSLA",
+    "NVDA",
+    "COIN"
+  ],
+  "stocks": {
+    "TSLA": {
+      "price": null,
+      "indicators": {},
+      "news": []
+    },
+    "NVDA": {
+      "price": null,
+      "indicators": {},
+      "news": []
+    },
+    "COIN": {
+      "price": null,
+      "indicators": {},
+      "news": []
+    }
+  }
+}
