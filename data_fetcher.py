@@ -7,7 +7,7 @@ data_fetcher.py - 真實數據獲取與指標運算模組
 
 本模組負責：
 1. 從 Yahoo Finance 抓取即時股價數據
-2. 使用 pandas_ta 計算技術指標
+2. 使用自定義函數計算技術指標
 3. 組裝結構化 JSON 輸出
 
 作者：Investment Bot
@@ -23,7 +23,7 @@ from typing import Dict, List, Any, Optional
 
 import yfinance as yf
 import pandas as pd
-import pandas_ta as ta
+import requests
 
 # 設定日誌記錄（監控數據獲取過程）
 logging.basicConfig(
@@ -92,7 +92,7 @@ class StockDataFetcher:
             logger.error(f"取得 {symbol} 價格失敗: {e}")
             return None
     
-    def get_historical_data(self, symbol: str, period: str = "1mo", interval: str = "1d") -> Optional[pd.DataFrame]:
+    def get_historical_data(self, symbol: str, period: str = "3mo", interval: str = "1d") -> Optional[pd.DataFrame]:
         """
         取得歷史 K 線數據
         
@@ -119,9 +119,111 @@ class StockDataFetcher:
             logger.error(f"取得 {symbol} 歷史數據失敗: {e}")
             return None
     
+    # ==================== 自定義技術指標函數 ====================
+    
+    def calculate_sma(self, data: pd.Series, period: int) -> pd.Series:
+        """
+        計算簡單移動平均線 (Simple Moving Average)
+        
+        參數:
+            data: 價格數據（通常是收盤價）
+            period: 移動平均週期
+        
+        返回:
+            SMA 數據序列
+        """
+        return data.rolling(window=period).mean()
+    
+    def calculate_ema(self, data: pd.Series, period: int) -> pd.Series:
+        """
+        計算指數移動平均線 (Exponential Moving Average)
+        
+        參數:
+            data: 價格數據
+            period: EMA 週期
+        
+        返回:
+            EMA 數據序列
+        """
+        return data.ewm(span=period, adjust=False).mean()
+    
+    def calculate_bollinger_bands(self, data: pd.Series, period: int = 20, std_dev: float = 2.0) -> pd.DataFrame:
+        """
+        計算布林通道 (Bollinger Bands)
+        
+        參數:
+            data: 收盤價序列
+            period: 週期（預設20天）
+            std_dev: 標準差倍數（預設2倍）
+        
+        返回:
+            包含上軌、中軌、下軌的 DataFrame
+        """
+        sma = self.calculate_sma(data, period)
+        std = data.rolling(window=period).std()
+        
+        upper = sma + (std * std_dev)
+        lower = sma - (std * std_dev)
+        
+        return pd.DataFrame({
+            'BB_upper': upper,
+            'BB_middle': sma,
+            'BB_lower': lower
+        }, index=data.index)
+    
+    def calculate_macd(self, data: pd.Series, fast: int = 12, slow: int = 26, signal: int = 9) -> pd.DataFrame:
+        """
+        計算 MACD（平滑異同移動平均線）
+        
+        參數:
+            data: 收盤價序列
+            fast: 快線週期（預設12）
+            slow: 慢線週期（預設26）
+            signal: 信號線週期（預設9）
+        
+        返回:
+            包含 MACD線、信號線、柱狀圖的 DataFrame
+        """
+        ema_fast = self.calculate_ema(data, fast)
+        ema_slow = self.calculate_ema(data, slow)
+        
+        macd_line = ema_fast - ema_slow
+        signal_line = self.calculate_ema(macd_line, signal)
+        histogram = macd_line - signal_line
+        
+        return pd.DataFrame({
+            'MACD': macd_line,
+            'Signal': signal_line,
+            'Histogram': histogram
+        }, index=data.index)
+    
+    def calculate_rsi(self, data: pd.Series, period: int = 14) -> pd.Series:
+        """
+        計算 RSI（相對强弱指數）
+        
+        參數:
+            data: 收盤價序列
+            period: RSI 週期（預設14）
+        
+        返回:
+            RSI 數值序列
+        """
+        delta = data.diff()
+        
+        gain = delta.where(delta > 0, 0)
+        loss = (-delta).where(delta < 0, 0)
+        
+        avg_gain = gain.rolling(window=period).mean()
+        avg_loss = loss.rolling(window=period).mean()
+        
+        rs = avg_gain / avg_loss
+        rsi = 100 - (100 / (1 + rs))
+        
+        return rsi
+    
     def calculate_indicators(self, df: pd.DataFrame) -> Dict[str, Any]:
         """
-        使用 pandas_ta 計算技術指標
+        計算技術指標
         
         參數:
             df: 歷史價格 DataFrame
@@ -132,83 +234,64 @@ class StockDataFetcher:
         if df is None or df.empty:
             return {}
         
-        # 複製資料避免修改原始數據
-        data = df.copy()
+        # 確保有 Close 欄位
+        if 'Close' not in df.columns:
+            logger.error("數據中沒有 Close 欄位")
+            return {}
         
-        # 確保必要的欄位存在
-        required_cols = ['Open', 'High', 'Low', 'Close', 'Volume']
-        for col in required_cols:
-            if col not in data.columns:
-                # 嘗試轉換欄位名稱（小寫）
-                col_lower = col.lower()
-                if col_lower in data.columns:
-                    data.columns = data.columns.str.replace(col_lower, col, regex=False)
+        close = df['Close']
         
-        # 計算技術指標
-        # 1. Bollinger Bands（布林通道）
-        bbands = data.ta.bbands(length=20, std=2)
-        if bbands is not None and not bbands.empty:
-            data = pd.concat([data, bbands], axis=1)
+        # 計算各項指標
+        bb = self.calculate_bollinger_bands(close)
+        macd = self.calculate_macd(close)
+        rsi = self.calculate_rsi(close)
         
-        # 2. MACD（平滑異同移動平均線）
-        macd = data.ta.macosl(fast=12, slow=26, signal=9)
-        if macd is not None and not macd.empty:
-            data = pd.concat([data, macd], axis=1)
-        
-        # 3. RSI（相對强弱指數）
-        rsi = data.ta.rsi(length=14)
-        if rsi is not None and not rsi.empty:
-            data = pd.concat([data, rsi], axis=1)
-        
-        # 4. SMA（簡單移動平均線）
-        sma20 = data.ta.sma(length=20)
-        sma50 = data.ta.sma(length=50)
-        sma200 = data.ta.sma(length=200)
+        # 計算 SMA
+        sma20 = self.calculate_sma(close, 20)
+        sma50 = self.calculate_sma(close, 50)
+        sma200 = self.calculate_sma(close, 200)
         
         # 取得最新一根 K 線的指標數值
-        latest = data.iloc[-1] if not data.empty else None
-        prev = data.iloc[-2] if len(data) > 1 else None
+        latest = df.iloc[-1] if not df.empty else None
+        prev = df.iloc[-2] if len(df) > 1 else None
         
         indicators = {}
         
         if latest is not None:
-            # === Bollinger Bands 解析 ===
-            # 判斷價格位於哪個軌道
-            close = latest.get('Close', 0)
-            bb_upper = latest.get('BBU_20_2.0')  # 上軌
-            bb_mid = latest.get('BBM_20_2.0')    # 中軌
-            bb_lower = latest.get('BBL_20_2.0')  # 下軌
+            current_price = close.iloc[-1]
             
-            if bb_upper and bb_lower:
-                if close > bb_upper:
-                    bb_position = "上軌上方（可能過熱）"
-                elif close < bb_lower:
-                    bb_position = "下軌下方（可能超賣）"
-                elif close > bb_mid:
-                    bb_position = "中軌與上軌之間（偏多）"
-                else:
-                    bb_position = "中軌與下軌之間（偏空）"
+            # === Bollinger Bands 解析 ===
+            bb_upper = bb['BB_upper'].iloc[-1]
+            bb_mid = bb['BB_middle'].iloc[-1]
+            bb_lower = bb['BB_lower'].iloc[-1]
+            
+            if current_price > bb_upper:
+                bb_position = "上軌上方（可能過熱）"
+            elif current_price < bb_lower:
+                bb_position = "下軌下方（可能超賣）"
+            elif current_price > bb_mid:
+                bb_position = "中軌與上軌之間（偏多）"
             else:
-                bb_position = "資料不足"
+                bb_position = "中軌與下軌之間（偏空）"
             
             indicators["bollinger_bands"] = {
-                "upper": round(bb_upper, 2) if bb_upper else None,
-                "middle": round(bb_mid, 2) if bb_mid else None,
-                "lower": round(bb_lower, 2) if bb_lower else None,
-                "current_price": round(close, 2),
+                "upper": round(bb_upper, 2) if pd.notna(bb_upper) else None,
+                "middle": round(bb_mid, 2) if pd.notna(bb_mid) else None,
+                "lower": round(bb_lower, 2) if pd.notna(bb_lower) else None,
+                "current_price": round(current_price, 2),
                 "position": bb_position
             }
             
             # === MACD 解析 ===
-            macd_line = latest.get('MACD_12_26_9')
-            macd_signal = latest.get('MACDs_12_26_9')
-            macd_hist = latest.get('MACDh_12_26_9')
+            macd_line = macd['MACD'].iloc[-1]
+            macd_signal = macd['Signal'].iloc[-1]
+            macd_hist = macd['Histogram'].iloc[-1]
             
             # 判斷MACD交叉
             macd_cross = "無交叉"
-            if prev is not None:
-                prev_macd = prev.get('MACD_12_26_9', 0)
-                prev_signal = prev.get('MACDs_12_26_9', 0)
+            if prev is not None and len(macd) > 1:
+                prev_macd = macd['MACD'].iloc[-2]
+                prev_signal = macd['Signal'].iloc[-2]
                 
                 # 金叉（多頭訊號）
                 if prev_macd <= prev_signal and macd_line > macd_signal:
@@ -218,21 +301,18 @@ class StockDataFetcher:
                     macd_cross = "死叉（空頭訊號）"
             
             # 柱狀圖方向
-            if macd_hist:
-                hist_direction = "紅柱（空頭）" if macd_hist < 0 else "綠柱（多頭）"
-            else:
-                hist_direction = "資料不足"
+            hist_direction = "紅柱（空頭）" if macd_hist < 0 else "綠柱（多頭）"
             
             indicators["macd"] = {
-                "macd_line": round(macd_line, 4) if macd_line else None,
-                "signal_line": round(macd_signal, 4) if macd_signal else None,
-                "histogram": round(macd_hist, 4) if macd_hist else None,
+                "macd_line": round(macd_line, 4) if pd.notna(macd_line) else None,
+                "signal_line": round(macd_signal, 4) if pd.notna(macd_signal) else None,
+                "histogram": round(macd_hist, 4) if pd.notna(macd_hist) else None,
                 "direction": hist_direction,
                 "crossover": macd_cross
             }
             
             # === RSI 解析 ===
-            rsi_value = latest.get('RSI_14')
+            rsi_value = rsi.iloc[-1]
             if rsi_value:
                 if rsi_value > 70:
                     rsi_signal = "超買區（可能回檔）"
@@ -245,15 +325,15 @@ class StockDataFetcher:
                 rsi_value = None
             
             indicators["rsi"] = {
-                "value": round(rsi_value, 2) if rsi_value else None,
+                "value": round(rsi_value, 2) if pd.notna(rsi_value) else None,
                 "signal": rsi_signal
             }
             
             # === 移動平均線 ===
             indicators["sma"] = {
-                "sma20": round(sma20.iloc[-1], 2) if sma20 is not None and not sma20.empty else None,
-                "sma50": round(sma50.iloc[-1], 2) if sma50 is not None and not sma50.empty else None,
-                "sma200": round(sma200.iloc[-1], 2) if sma200 is not None and not sma200.empty else None
+                "sma20": round(sma20.iloc[-1], 2) if pd.notna(sma20.iloc[-1]) else None,
+                "sma50": round(sma50.iloc[-1], 2) if pd.notna(sma50.iloc[-1]) else None,
+                "sma200": round(sma200.iloc[-1], 2) if pd.notna(sma200.iloc[-1]) else None
             }
         
         return indicators

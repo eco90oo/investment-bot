@@ -1,0 +1,208 @@
+{
+  "timestamp": "2026-04-03T13:37:53.478391",
+  "watchlist": [
+    "TSLA",
+    "NVDA",
+    "COIN"
+  ],
+  "stocks": {
+    "TSLA": {
+      "price": {
+        "symbol": "TSLA",
+        "current_price": 360.59,
+        "previous_close": 381.26,
+        "open": 364.0273,
+        "high": 370.26,
+        "low": 359.03,
+        "volume": 82532959,
+        "market_cap": 1353089417216,
+        "pe_ratio": 333.8796,
+        "eps": 1.08,
+        "52w_high": 498.83,
+        "52w_low": 214.25,
+        "name": "Tesla, Inc.",
+        "timestamp": "2026-04-03T13:37:54.292136"
+      },
+      "indicators": {
+        "bollinger_bands": {
+          "upper": 413.75,
+          "middle": 383.86,
+          "lower": 353.97,
+          "current_price": 360.59,
+          "position": "中軌與下軌之間（偏空）"
+        },
+        "macd": {
+          "macd_line": -11.0628,
+          "signal_line": -10.2565,
+          "histogram": -0.8063,
+          "direction": "紅柱（空頭）",
+          "crossover": "無交叉"
+        },
+        "rsi": {
+          "value": 38.64,
+          "signal": "中性區"
+        },
+        "sma": {
+          "sma20": 383.86,
+          "sma50": 403.48,
+          "sma200": null
+        }
+      },
+      "news": [
+        {
+          "title": "無標題",
+          "publisher": "未知來源",
+          "link": "",
+          "pubDate": "",
+          "type": ""
+        },
+        {
+          "title": "無標題",
+          "publisher": "未知來源",
+          "link": "",
+          "pubDate": "",
+          "type": ""
+        },
+        {
+          "title": "無標題",
+          "publisher": "未知來源",
+          "link": "",
+          "pubDate": "",
+          "type": ""
+        }
+      ]
+    },
+    "NVDA": {
+      "price": {
+        "symbol": "NVDA",
+        "current_price": 177.39,
+        "previous_close": 175.75,
+        "open": 172.18,
+        "high": 177.48,
+        "low": 171.37,
+        "volume": 141415327,
+        "market_cap": 4311464017920,
+        "pe_ratio": 36.20204,
+        "eps": 4.9,
+        "52w_high": 212.19,
+        "52w_low": 86.62,
+        "name": "NVIDIA Corporation",
+        "timestamp": "2026-04-03T13:37:54.812661"
+      },
+      "indicators": {
+        "bollinger_bands": {
+          "upper": 188.76,
+          "middle": 177.62,
+          "lower": 166.48,
+          "current_price": 177.39,
+          "position": "中軌與下軌之間（偏空）"
+        },
+        "macd": {
+          "macd_line": -2.9351,
+          "signal_line": -2.9735,
+          "histogram": 0.0385,
+          "direction": "綠柱（多頭）",
+          "crossover": "金叉（多頭訊號）"
+        },
+        "rsi": {
+          "value": 46.9,
+          "signal": "中性區"
+        },
+        "sma": {
+          "sma20": 177.62,
+          "sma50": 182.64,
+          "sma200": null
+        }
+      },
+      "news": [
+        {
+          "title": "無標題",
+          "publisher": "未知來源",
+          "link": "",
+          "pubDate": "",
+          "type": ""
+        },
+        {
+          "title": "無標題",
+          "publisher": "未知來源",
+          "link": "",
+          "pubDate": "",
+          "type": ""
+        },
+        {
+          "title": "無標題",
+          "publisher": "未知來源",
+          "link": "",
+          "pubDate": "",
+          "type": ""
+        }
+      ]
+    },
+    "COIN": {
+      "price": {
+        "symbol": "COIN",
+        "current_price": 171.46,
+        "previous_close": 172.99,
+        "open": 167.435,
+        "high": 173.03,
+        "low": 163.56,
+        "volume": 8706255,
+        "market_cap": 46235492352,
+        "pe_ratio": 38.443947,
+        "eps": 4.46,
+        "52w_high": 444.65,
+        "52w_low": 139.36,
+        "name": "Coinbase Global, Inc.",
+        "timestamp": "2026-04-03T13:37:55.606214"
+      },
+      "indicators": {
+        "bollinger_bands": {
+          "upper": 218.94,
+          "middle": 188.72,
+          "lower": 158.49,
+          "current_price": 171.46,
+          "position": "中軌與下軌之間（偏空）"
+        },
+        "macd": {
+          "macd_line": -5.6499,
+          "signal_line": -2.9309,
+          "histogram": -2.719,
+          "direction": "紅柱（空頭）",
+          "crossover": "無交叉"
+        },
+        "rsi": {
+          "value": 36.43,
+          "signal": "中性區"
+        },
+        "sma": {
+          "sma20": 188.72,
+          "sma50": 183.81,
+          "sma200": null
+        }
+      },
+      "news": [
+        {
+          "title": "無標題",
+          "publisher": "未知來源",
+          "link": "",
+          "pubDate": "",
+          "type": ""
+        },
+        {
+          "title": "無標題",
+          "publisher": "未知來源",
+          "link": "",
+          "pubDate": "",
+          "type": ""
+        },
+        {
+          "title": "無標題",
+          "publisher": "未知來源",
+          "link": "",
+          "pubDate": "",
+          "type": ""
+        }
+      ]
+    }
+  }
+}
